@@ -1,0 +1,24 @@
+module Scanner.Scan where
+
+-- import Scanner.Nmap
+-- import System.Process
+-- import Debug.Trace
+-- 
+-- type ScanArgs = [String]
+-- 
+-- normalScan :: ScanArgs
+-- normalScan = []
+-- 
+-- agressiveScan :: ScanArgs
+-- agressiveScan = ["-A"]
+-- 
+-- run f ips = do
+--     let scans = [normalScan, agressiveScan]
+--     foldr (makeScan f ips) scans
+-- 
+-- makeScan f ips args = do
+--     let args' = ["-oX", f] ++ args ++ ips
+--     _ <- readProcess "nmap" args' []
+--     d <- parse f
+--     putStrLn $ show d
+--     return () 
