@@ -24,7 +24,6 @@ parseScan = atTag "nmaprun" >>>
         hosts <- listA parseHost -< x
         returnA -< hosts
 
-
 -- Host
 data Host = Host {addr, addrType, hostState :: String, ports :: Ports}
 
@@ -60,6 +59,9 @@ instance Semigroup Port where
 
 instance Show Port where
     show (Port i r st se sc) = (show i)++"/"++r++" "++(show st)++" "++(show se)++(show sc)
+
+instance Monoid Port where
+    mempty = Port 0 "" mempty mempty mempty
 
 parsePort :: ArrowXml cat => cat (NTree XNode) Port
 parsePort = atTag "ports" >>>
@@ -178,10 +180,12 @@ instance Eq Script where
 instance Monoid Script where
     mempty = Script "" ""
 
+-- Assume id is the same since Scripts will merge by ID
 instance Semigroup Script where
-    (<>) a (Script "" "") = a
-    (<>) (Script "" "") b = b
-    (<>) _ b = b
+    (<>) (Script id output) (Script _ output') =
+        if (T.length output) > (T.length output')
+           then Script id output
+           else Script id output'
 
 instance Show Script where
     show (Script id output) = id++"\n"++(addToFront "\t" (T.unpack output))
@@ -201,6 +205,9 @@ instance Semigroup Scripts where
 instance Show Scripts where
     show (Scripts []) = ""
     show (Scripts xs) = "\n" ++ (addToFront "|  " $ intercalate "\n" (map (\x -> (show x)) xs))
+
+instance Monoid Scripts where
+    mempty = Scripts []
 
 parseScripts :: ArrowXml a => a (NTree XNode) [Script]
 parseScripts = listA parseScript

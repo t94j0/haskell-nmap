@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 247576a73180ff0942be93239b834c0fc535dee70ac37fa3d434968068a8b198
+-- hash: 4f50d12cdf66f6f8bfc8e19556c9f3e7fca2c41e6d8594e828e64fe3bd759ce2
 
 name:           nmap
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/nmap#readme>
-homepage:       https://github.com/github.com/nmapmerge#readme
-bug-reports:    https://github.com/github.com/nmapmerge/issues
+description:    Nmap
+homepage:       https://github.com/github.com/haskell-nmap#readme
+bug-reports:    https://github.com/github.com/haskell-nmap/issues
 author:         Max Harley
 maintainer:     maxh@maxh.io
 copyright:      2020 Max Harley
@@ -23,7 +23,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/github.com/nmapmerge
+  location: https://github.com/github.com/haskell-nmap
 
 library
   exposed-modules:

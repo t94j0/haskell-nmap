@@ -1,5 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+
 import Test.Hspec
-import Nmap
+import Scanner.Nmap
 
 main :: IO ()
 main = hspec $ do
@@ -66,9 +69,9 @@ main = hspec $ do
 
     describe "Scripts" $ do
         it "merges scripts" $ do
-            let a = scriptsFromList [Script "a1" "vb1", Script "a2" "va2"]
-            let b = scriptsFromList [Script "b1" "vb1", Script "a1" "vb2"]
-            a <> b `shouldBe` scriptsFromList [Script "a1" "vb2", Script "a2" "va2", Script "b1" "vb1"]
+            let a = Scripts [Script "a1" "vb11", Script "a2" "va2"]
+            let b = Scripts [Script "b1" "vb1", Script "a1" "vb2"]
+            a <> b `shouldBe` Scripts [Script "a1" "vb11", Script "a2" "va2", Script "b1" "vb1"]
 
     describe "Port" $ do
         it "creates a port id" $ do
