@@ -32,6 +32,8 @@ library:
     - html-entity
     - directory
     - process
+    - filepath
+    - random
 
 executables:
   nmap-exe:

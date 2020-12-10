@@ -19,6 +19,9 @@ instance Semigroup ScanResult where
 instance Show ScanResult where
     show (ScanResult xs) = concat $ map show xs
 
+instance Monoid ScanResult where
+    mempty = ScanResult []
+
 parseScan = atTag "nmaprun" >>>
     proc x -> do
         hosts <- listA parseHost -< x
