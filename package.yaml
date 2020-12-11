@@ -48,6 +48,7 @@ executables:
     - nmap
     - hxt
     - containers
+    - unix
 
 tests:
   nmap-test:

@@ -9,6 +9,7 @@ import Data.Tree.NTree.TypeDefs
 import Text.XML.HXT.Core hiding (trace)
 import Text.HTMLEntity (decode')
 import qualified Data.Text as T
+import Text.Printf
 
 -- Scan
 data ScanResult = ScanResult [Host]
@@ -61,7 +62,7 @@ instance Semigroup Port where
         Port po pr (st <> st') (se <> se') (sc <> sc')
 
 instance Show Port where
-    show (Port i r st se sc) = (show i)++"/"++r++" "++(show st)++" "++(show se)++(show sc)
+    show (Port i r st se sc) = printf "%s/%s %s %s%s" (show i) r (show st) (show se) (show sc)
 
 instance Monoid Port where
     mempty = Port 0 "" mempty mempty mempty
@@ -79,7 +80,7 @@ parsePort = atTag "ports" >>>
             where removeEmpty f = filter (\x -> f x /= "")
 
 portId :: Port -> String
-portId (Port port protocol _ _ _) = (show port)++"/"++protocol
+portId (Port port protocol _ _ _) = printf "%d/%s" port protocol
 
 
 data Ports = Ports [Port]
@@ -162,7 +163,7 @@ instance Show Service where
     show (Service n _ "" v o) = n++"\nVersion: "++v++", OS Type: "++o
     show (Service n _ p "" o) = n++"\nProduct: "++p++", Version: "++o
     show (Service n _ p v "") = n++"\nProduct: "++p++", Version: "++v
-    show (Service n _ p v o) = n++"\nProduct: "++p++", Version: "++v++", OS Type: "++o
+    show (Service n _ p v o) = printf "%s\nProduct: %s, Version: %s, OS Type: %s" n p v o
 
 parseService :: ArrowXml cat => cat (NTree XNode) Service
 parseService = atTag "service" >>>
