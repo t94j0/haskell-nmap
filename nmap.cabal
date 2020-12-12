@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e3f7f195e5fb8e7837ed663824ae5bb047fda623a593bbd44c9cdb32057926fb
+-- hash: b86d40962921a469d87984397b059769387909e7286c279c4a5c1530332bd0e7
 
 name:           nmap
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
     , filepath
     , html-entity
     , hxt
+    , parallel
     , process
     , random
     , text
@@ -51,7 +52,7 @@ executable nmap-exe
       Paths_nmap
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N3 -Wall
   build-depends:
       base >=4.7 && <5
     , containers

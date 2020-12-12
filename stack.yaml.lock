@@ -39,6 +39,13 @@ packages:
       sha256: 9d21df864535dcc65e11fd108c4678fdadf2d53bb9ffd1fda142369c797f31c1
   original:
     hackage: process-1.6.9.0
+- completed:
+    hackage: parallel-3.2.2.0@sha256:c69372af9a39a06739e1d0eaa1f2d8be6b86493a53dbbc455e7b30479c491c6a,1763
+    pantry-tree:
+      size: 392
+      sha256: 0b408143e18070406acc2acb528fc4b695f04161e0beb490351d50d92a841fe3
+  original:
+    hackage: parallel-3.2.2.0
 snapshots:
 - completed:
     size: 532835

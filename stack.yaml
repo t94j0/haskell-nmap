@@ -10,3 +10,4 @@ extra-deps:
     - MissingH-1.4.3.0
     - html-entity-0.1.3.0
     - process-1.6.9.0
+    - parallel-3.2.2.0

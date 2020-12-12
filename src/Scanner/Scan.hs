@@ -1,16 +1,22 @@
 module Scanner.Scan where
 
+import Control.Concurrent
 import Control.Monad
 import Scanner.Nmap
 import System.Directory
 import System.FilePath
 import System.Process
 import System.Random
+import Control.Parallel
 
 outdir :: FilePath
 outdir = "/" </> "var" </> "nmaplog"
 
+-- scans
 type ScanArgs = [String]
+
+pingScan :: ScanArgs
+pingScan = ["-sn"]
 
 quickTCPScan :: ScanArgs
 quickTCPScan = ["-sC", "-sV"]
@@ -37,19 +43,16 @@ smbScan :: ScanArgs
 smbScan = ["-p445", "-vv", "--script=smb-vuln-cve2009-3103.nse,smb-vuln-ms06-025.nse,smb-vuln-ms07-029.nse,smb-vuln-ms08-067.nse,smb-vuln-ms10-054.nse,smb-vuln-ms10-061.nse,smb-vuln-ms17-010.nse"]
 
 allScans :: [ScanArgs]
-allScans = [quickTCPScan, normalScan, agressiveScan, fullPort, smbScan, fullPortAgressive, quickUDPScan, udpScan]
+allScans = [pingScan, normalScan, agressiveScan, fullPort, smbScan, fullPortAgressive, udpScan]
 
-randFileName :: String -> IO String
-randFileName ext = do
-    gen <- newStdGen
-    let str = take 10 $ randomRs ('a','z') gen 
-    return $ str <.> ext
 
+-- scanning
 makeScan :: String -> ScanArgs -> IO ScanResult
 makeScan ips args = do
     filePathName <- randFileName "xml"
     let filePath = outdir </> filePathName
     let args' = ["-oX", filePath] ++ args ++ [ips]
+    putStrLn $ "Running with: "++(show args')
     out <- readProcess "nmap" args' []
     d <- parse filePath
     -- Why can't I set world writable permissions in Haskell :\
@@ -76,3 +79,10 @@ cleanDir = do
     let files = map (outdir </>) l
     _ <- sequence $ map removeFile files
     return ()
+
+-- utils
+randFileName :: String -> IO String
+randFileName ext = do
+    gen <- newStdGen
+    let str = take 10 $ randomRs ('a','z') gen 
+    return $ str <.> ext
