@@ -44,12 +44,9 @@ instance Show Host where
     show (Host a t s ps hs) = concat $ intersperse " " [(show a), s, (show ps)++(hsfmt $ show hs), "\n"]
         where hsfmt x = if x == "" then "" else x++"\n"
 
-parseHS' = atTag "hostscript" >>>
-    proc x -> do
-        ss <- parseScripts -< x
-        returnA -< ss
-
+-- thank God that the port and host script format is the same
 parseHS = (atTag "hostscript" >>> parseHS') `orElse` (constA [])
+    where parseHS' = atTag "hostscript" >>> parseScripts
 
 parseHost = atTag "host" >>>
     proc x -> do
