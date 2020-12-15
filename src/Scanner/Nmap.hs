@@ -23,6 +23,8 @@ instance Show ScanResult where
 instance Monoid ScanResult where
     mempty = ScanResult []
 
+hosts (ScanResult x) = x
+
 parseScan = atTag "nmaprun" >>>
     proc x -> do
         hosts <- listA parseHost -< x
@@ -53,6 +55,21 @@ parseHost = atTag "host" >>>
 
 hostId :: Host -> String
 hostId = addr
+
+-- OS Match
+data OSMatch = OSMatch {fingerprint :: String, matches :: [String]}
+
+instance Semigroup OSMatch where
+    (<>) (OSMatch fp m) (OSMatch fp' m') = OSMatch (if length fp > length fp' then fp else fp') (nub (m++m'))
+
+parseOSMatch = atTag "os" >>>
+    proc x -> do
+        match <- atTag "osmatch" -< x
+        name <- atTag "name" -< match
+        fp <- atTag "osmatch" -< x
+        fingerprint <- getAttrValue "fingerprint" -< fp
+        returnA -< OSMatch fingerprint [""]
+
 
 -- Port
 data Port = Port Int String State Service Scripts deriving (Eq)
