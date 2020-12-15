@@ -35,13 +35,21 @@ parseScan = atTag "nmaprun" >>>
         returnA -< hosts
 
 -- Host
-data Host = Host {addr :: IP, addrType, hostState :: String, ports :: Ports}
+data Host = Host {addr :: IP, addrType, hostState :: String, ports :: Ports, hostScripts :: Scripts}
 
 instance Semigroup Host where
-    (<>) (Host a b c x) (Host _ _ _ y) = Host a b c (x<>y)
+    (<>) (Host a b c x hs) (Host _ _ _ x' hs') = Host a b c (x<>x') (hs<>hs')
 
 instance Show Host where
-    show (Host a t s ps) = concat $ intersperse " " [(show a), s, show ps, "\n"]
+    show (Host a t s ps hs) = concat $ intersperse " " [(show a), s, (show ps)++(hsfmt $ show hs), "\n"]
+        where hsfmt x = if x == "" then "" else x++"\n"
+
+parseHS' = atTag "hostscript" >>>
+    proc x -> do
+        ss <- parseScripts -< x
+        returnA -< ss
+
+parseHS = (atTag "hostscript" >>> parseHS') `orElse` (constA [])
 
 parseHost = atTag "host" >>>
     proc x -> do
@@ -51,11 +59,13 @@ parseHost = atTag "host" >>>
         addr <- getAttrValue "addr" -< address
         addrType <- getAttrValue "addrtype" -< address
         ports' <- parsePorts -< x
+        hs <- parseHS -< x
         returnA -< Host
             {hostState = state
             , addr = read addr :: IP
             , addrType = addrType
-            , ports = Ports ports'}
+            , ports = Ports ports'
+            , hostScripts = Scripts hs}
 
 hostId :: Host -> IP
 hostId = addr
@@ -83,7 +93,8 @@ instance Semigroup Port where
         Port po pr (st <> st') (se <> se') (sc <> sc')
 
 instance Show Port where
-    show (Port i r st se sc) = printf "%s/%s %s %s%s" (show i) r (show st) (show se) (show sc)
+    show (Port i r st se sc) = printf "%s/%s %s %s%s" (show i) r (show st) (show se) (scfmt $ show sc)
+        where scfmt x = if x == "" then "" else "\n"++x
 
 instance Monoid Port where
     mempty = Port 0 "" mempty mempty mempty
@@ -231,7 +242,7 @@ instance Semigroup Scripts where
 
 instance Show Scripts where
     show (Scripts []) = ""
-    show (Scripts xs) = "\n" ++ (addToFront "|  " $ intercalate "\n" (map (\x -> (show x)) xs))
+    show (Scripts xs) = (addToFront "|  " $ intercalate "\n" (map (\x -> (show x)) xs))
 
 instance Monoid Scripts where
     mempty = Scripts []
