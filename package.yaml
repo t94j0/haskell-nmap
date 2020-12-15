@@ -35,6 +35,8 @@ library:
     - filepath
     - random
     - parallel
+    - sort
+    - iproute
 
 executables:
   nmap-exe:

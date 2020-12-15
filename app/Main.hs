@@ -21,7 +21,7 @@ cleanCmd = cleanDir
 getIP :: String -> IO ()
 getIP ip = do
     hs <- combineFromDir 
-    case find (\x -> ip == addr x) (hosts hs) of
+    case find (\x -> ip == (show $ hostId x)) (hosts hs) of
       Just x -> print x
       Nothing -> print "Not there"
 

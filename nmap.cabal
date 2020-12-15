@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b86d40962921a469d87984397b059769387909e7286c279c4a5c1530332bd0e7
+-- hash: aa28f057a270e6ea3d9a96c5fa34d451bdf829bb11fe29e699f0f29c723fe797
 
 name:           nmap
 version:        0.1.0.0
@@ -40,9 +40,11 @@ library
     , filepath
     , html-entity
     , hxt
+    , iproute
     , parallel
     , process
     , random
+    , sort
     , text
   default-language: Haskell2010
 

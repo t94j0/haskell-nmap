@@ -2,6 +2,8 @@
 
 module Scanner.Nmap where
 
+import Data.IP hiding (addr)
+import Data.Sort
 import Prelude hiding (id)
 import Data.List
 import qualified Data.Map as M
@@ -15,7 +17,9 @@ import Text.Printf
 data ScanResult = ScanResult [Host]
 
 instance Semigroup ScanResult where
-    (<>) (ScanResult xs) (ScanResult ys) = merge (ScanResult) hostId xs ys
+    (<>) (ScanResult xs) (ScanResult ys) = do
+        let (ScanResult zs) = merge ScanResult hostId xs ys
+        ScanResult $ sortBy (\x y -> compare (addr x) (addr y)) zs
 
 instance Show ScanResult where
     show (ScanResult xs) = concat $ map show xs
@@ -31,13 +35,13 @@ parseScan = atTag "nmaprun" >>>
         returnA -< hosts
 
 -- Host
-data Host = Host {addr, addrType, hostState :: String, ports :: Ports}
+data Host = Host {addr :: IP, addrType, hostState :: String, ports :: Ports}
 
 instance Semigroup Host where
     (<>) (Host a b c x) (Host _ _ _ y) = Host a b c (x<>y)
 
 instance Show Host where
-    show (Host a t s ps) = concat $ intersperse " " [a, s, show ps, "\n"]
+    show (Host a t s ps) = concat $ intersperse " " [(show a), s, show ps, "\n"]
 
 parseHost = atTag "host" >>>
     proc x -> do
@@ -49,11 +53,11 @@ parseHost = atTag "host" >>>
         ports' <- parsePorts -< x
         returnA -< Host
             {hostState = state
-            , addr = addr
+            , addr = read addr :: IP
             , addrType = addrType
             , ports = Ports ports'}
 
-hostId :: Host -> String
+hostId :: Host -> IP
 hostId = addr
 
 -- OS Match
@@ -103,7 +107,9 @@ portId (Port port protocol _ _ _) = printf "%d/%s" port protocol
 data Ports = Ports [Port]
 
 instance Semigroup Ports where
-    (<>) (Ports xs) (Ports ys) = merge Ports portId xs ys
+    (<>) (Ports xs) (Ports ys) = do
+        let (Ports zs) = merge Ports portId xs ys
+        Ports $ sortBy (\(Port x _ _ _ _) (Port y _ _ _ _) -> compare x y) zs
 
 instance Show Ports where
     show (Ports xs) = concat $ ["\n"]++map (\x -> show x ++ "\n") xs
