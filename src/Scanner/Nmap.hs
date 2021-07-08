@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import Text.Printf
 
 -- Scan
-data ScanResult = ScanResult [Host]
+newtype ScanResult = ScanResult [Host]
 
 instance Semigroup ScanResult where
     (<>) (ScanResult xs) (ScanResult ys) = do
@@ -22,7 +22,7 @@ instance Semigroup ScanResult where
         ScanResult $ sortBy (\x y -> compare (addr x) (addr y)) zs
 
 instance Show ScanResult where
-    show (ScanResult xs) = concat $ map show xs
+    show (ScanResult xs) = concatMap show xs
 
 instance Monoid ScanResult where
     mempty = ScanResult []
@@ -41,11 +41,11 @@ instance Semigroup Host where
     (<>) (Host a b c x hs) (Host _ _ _ x' hs') = Host a b c (x<>x') (hs<>hs')
 
 instance Show Host where
-    show (Host a t s ps hs) = concat $ intersperse " " [(show a), s, (show ps)++(hsfmt $ show hs), "\n"]
+    show (Host a t s ps hs) = unwords [show a, s, show ps++hsfmt (show hs), "\n"]
         where hsfmt x = if x == "" then "" else x++"\n"
 
 -- thank God that the port and host script format is the same
-parseHS = (atTag "hostscript" >>> parseHS') `orElse` (constA [])
+parseHS = (atTag "hostscript" >>> parseHS') `orElse` constA []
     where parseHS' = atTag "hostscript" >>> parseScripts
 
 parseHost = atTag "host" >>>
@@ -112,7 +112,7 @@ portId :: Port -> String
 portId (Port port protocol _ _ _) = printf "%d/%s" port protocol
 
 
-data Ports = Ports [Port]
+newtype Ports = Ports [Port]
 
 instance Semigroup Ports where
     (<>) (Ports xs) (Ports ys) = do
@@ -120,7 +120,7 @@ instance Semigroup Ports where
         Ports $ sortBy (\(Port x _ _ _ _) (Port y _ _ _ _) -> compare x y) zs
 
 instance Show Ports where
-    show (Ports xs) = concat $ ["\n"]++map (\x -> show x ++ "\n") xs
+    show (Ports xs) = concat $ "\n" : map (\x -> show x ++ "\n") xs
 
 
 parsePorts :: ArrowXml a => a (NTree XNode) [Port]
@@ -139,11 +139,11 @@ instance Show StateValue where
     show Closed = "closed"
 
 instance Read StateValue where
-    readsPrec _ value = 
+    readsPrec _ value =
         tryParse [("open|filtered", OpenFiltered), ("open", Open), ("unfiltered", Unfiltered), ("filtered", Filtered), ("closed|filtered", ClosedFiltered), ("closed", Closed)]
         where tryParse [] = []
               tryParse ((attempt, result):xs) =
-                      if (take (length attempt) value) == attempt
+                      if take (length attempt) value == attempt
                          then [(result, drop (length attempt) value)]
                          else tryParse xs
 
@@ -158,7 +158,7 @@ instance Monoid State where
     mempty = State Closed ""
 
 instance Show State where
-    show (State s r) = (show s) ++ " (" ++r++")"
+    show (State s r) = show s ++ " (" ++r++")"
 
 parseState :: ArrowXml cat => cat (NTree XNode) State
 parseState = atTag "state" >>>
@@ -210,7 +210,7 @@ parseService = atTag "service" >>>
 data Script = Script {id :: String, output :: T.Text}
 
 instance Eq Script where
-    (==) a b = id a == id b
+    (==) a b = a == b
 
 instance Monoid Script where
     mempty = Script "" ""
@@ -218,12 +218,12 @@ instance Monoid Script where
 -- Assume id is the same since Scripts will merge by ID
 instance Semigroup Script where
     (<>) (Script id output) (Script _ output') =
-        if (T.length output) > (T.length output')
+        if T.length output > T.length output'
            then Script id output
            else Script id output'
 
 instance Show Script where
-    show (Script id output) = id++"\n"++(addToFront "\t" (T.unpack output))
+    show (Script id output) = id++"\n"++addToFront "\t" (T.unpack output)
 
 parseScript :: ArrowXml cat => cat (NTree XNode) Script
 parseScript = atTag "script" >>>
@@ -232,14 +232,14 @@ parseScript = atTag "script" >>>
         output' <- getAttrValue "output" -< script
         returnA -< Script scriptID (T.strip $ T.pack output')
 
-data Scripts = Scripts [Script] deriving (Eq)
+newtype Scripts = Scripts [Script] deriving (Eq)
 
 instance Semigroup Scripts where
     (<>) (Scripts xs) (Scripts ys) = merge Scripts id xs ys
 
 instance Show Scripts where
     show (Scripts []) = ""
-    show (Scripts xs) = (addToFront "|  " $ intercalate "\n" (map (\x -> (show x)) xs))
+    show (Scripts xs) = addToFront "|  " $ intercalate "\n" (map show xs)
 
 instance Monoid Scripts where
     mempty = Scripts []
@@ -250,10 +250,10 @@ parseScripts = listA parseScript
 -- utils
 addToFront :: String -> String -> String
 addToFront x ys = x++atf x ys
-    where 
+    where
         atf :: String -> String -> String
-        atf x ('\n':ys) = "\n"++x++(atf x ys)
-        atf x (y:ys) = [y] ++ (atf x ys)
+        atf x ('\n':ys) = "\n"++x++atf x ys
+        atf x (y:ys) = y : atf x ys
         atf _ "" = ""
 
 parseXML :: String -> IOStateArrow s b XmlTree
@@ -275,5 +275,5 @@ merge a f xs ys =
 parse x = do
     hosts <- runX $ parseXML x >>> parseScan
     if length hosts == 1
-       then return $ ScanResult $ hosts !! 0
+       then return $ ScanResult $ head hosts
        else return $ ScanResult []

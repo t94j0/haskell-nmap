@@ -52,37 +52,32 @@ makeScan ips args = do
     filePathName <- randFileName "xml"
     let filePath = outdir </> filePathName
     let args' = ["-oX", filePath] ++ args ++ [ips]
-    putStrLn $ "Running with: "++(show args')
+    putStrLn $ "Running with: "++show args'
     out <- readProcess "nmap" args' []
-    d <- parse filePath
-    -- Why can't I set world writable permissions in Haskell :\
-    -- readProcess "chmod" ["+r", filePath] []
-    return d
+    parse filePath
 
 
 makeScans :: [String] -> [ScanArgs] -> IO ScanResult
 makeScans ips args = do
     let fs = fmap makeScan ips
-    let scans = concat $ map (\x -> map (\y -> x y) args) fs
+    let scans = concatMap (`map` args) fs
     foldM (fmap . (<>)) mempty scans
 
 combineFromDir :: IO ScanResult
 combineFromDir = do
     l <- listDirectory outdir
     let files = map (outdir </>) l
-    d <- foldr (<>) mempty (map parse files)
-    return d
+    mconcat (map parse files)
 
 cleanDir :: IO ()
 cleanDir = do
     l <- listDirectory outdir
     let files = map (outdir </>) l
-    _ <- sequence $ map removeFile files
-    return ()
+    mapM_ removeFile files
 
 -- utils
 randFileName :: String -> IO String
 randFileName ext = do
     gen <- newStdGen
-    let str = take 10 $ randomRs ('a','z') gen 
+    let str = take 10 $ randomRs ('a','z') gen
     return $ str <.> ext
